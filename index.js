@@ -8,100 +8,109 @@ const backspace = document.querySelector('.backspace');
 const decimal = document.querySelector('.decimal');
 const equal = document.querySelector('.equal');
 const opers = document.querySelectorAll('.oper');
+const audio = new Audio("tink.wav");
 
-let operMode = false;
 let canChangeOperand = false;
 let currentOperation = null;
 let equal_number = 0;
 let equal_operand;
+let key_value;
+const shortcuts = {
+    "Enter": "=",
+    "Escape": "AC",
+    "Backspace": "Del",
+    "Delete": "Del",
+    "*": "x",
+    "/": "÷",
+}
 
 // things to improve:
-// add on keystroke
-// figure out the decimal points console.log(Number(5.1) + Number(0.1))
-// separate the function from the addEventListener
 // add more comments
+// fixed length on display
 
 
 const operator = (currentOperation, secondNumber) => {
     let operand = currentOperation.slice(-1);
-    let number1 = Number(currentOperation.slice(0, -1));
-    let number2 = Number(secondNumber);
-    // console.log(number1, number2, operand);
-    if (operand == "+") return number1 + number2;
-    else if (operand == "-") return number1 - number2;
-    else if (operand == "x") return number1 * number2;
-    else if (operand == "÷") return number1 / number2;
-    
+    let number1 = parseFloat(parseFloat(currentOperation.slice(0, -1)).toFixed(10));
+    let number2 = parseFloat(parseFloat(secondNumber).toFixed(10));
+    if (operand == "+") return RoundNumber(number1 + number2);
+    else if (operand == "-") return RoundNumber(number1 - number2);
+    else if (operand == "x") return RoundNumber(number1 * number2);
+    else if (operand == "÷") return RoundNumber(number1 / number2);
 }
 
-digits.forEach(digit => digit.addEventListener('click', (e) => {
+// figure out the decimal points console.log(Number(5.1) + Number(0.1))
+const RoundNumber = (num) => {
+    return Math.round(num * 1000000000) / 1000000000;
+}
+
+const addDigit = (e) => {
     if (display.innerHTML == '0') {
-        display.innerHTML = e.target.innerHTML;
+        display.innerHTML = e;
     } else {
         if (currentOperation != null) {
             if (canChangeOperand) {
-                display.innerHTML = e.target.innerHTML;
+                display.innerHTML = e;
                 canChangeOperand = false;
             } else {
-                display.innerHTML += e.target.innerHTML;
+                display.innerHTML += e;
             }
         } else {
-            display.innerHTML += e.target.innerHTML;
+            display.innerHTML += e;
         }
     }
     equal_number = display.innerHTML;
-}))
+}
 
-opers.forEach(oper => oper.addEventListener('click', (e) => {
+const addOper = (e) => {
     if (currentOperation == null) {
-        currentOperation = display.innerHTML + e.target.innerHTML;
+        currentOperation = display.innerHTML + e;
         canChangeOperand = true;
     } 
     else {
-        // display.innerHTML = evaluate(currentOperation, e.target.innerHTML);
         if (canChangeOperand) {
-            currentOperation = currentOperation.slice(0, -1) + e.target.innerHTML;
+            currentOperation = currentOperation.slice(0, -1) + e;
         } else {
             display.innerHTML = operator(currentOperation, display.innerHTML);
-            currentOperation = display.innerHTML + e.target.innerHTML;
+            currentOperation = display.innerHTML + e;
             canChangeOperand = true;
         }
     }
     equal_number = display.innerHTML;
-}))
+}
 
-equal.addEventListener('click', () => {
+const equalFunc = () => {
     if (currentOperation != null) {
         let equal_operand = currentOperation.slice(-1);
         display.innerHTML = operator(currentOperation, equal_number);
         currentOperation = display.innerHTML + equal_operand;
         canChangeOperand = true;
     }
-})
+}
 
-clear.addEventListener('click', () => {
+const clearFunc = () => {
     currentOperation = null;
     canChangeOperand = false;
     display.innerHTML = 0;
     equal_number = 0;
     equal_operand = null;
-})
+}
 
-opposite.addEventListener('click', () => {
+const oppositeFunc = () => {
     if (Number(display.innerHTML) != 0) {
         display.innerHTML = Number(display.innerHTML) * (-1);
     }
     equal_number = display.innerHTML;
     canChangeOperand = false;
-})
+}
 
-percent.addEventListener('click', () => {
+const percentFunc = () => {
     display.innerHTML = Number(display.innerHTML) / (100);
     equal_number = display.innerHTML;
     canChangeOperand = false;
-})
+}
 
-decimal.addEventListener('click', () => {
+const decimalFunc = () => {
     if (display.textContent == '' || display.textContent == '-') {
         display.textContent = 0;
     }
@@ -112,9 +121,9 @@ decimal.addEventListener('click', () => {
         if (display.textContent.includes('.')) return;
         display.textContent += '.';
     }
-})
+}
 
-backspace.addEventListener('click', () => {
+const backspaceFunc = () => {
     if (display.innerHTML.length > 1) {
         display.innerHTML = display.innerHTML.slice(0, display.innerHTML.length - 1);
     } else {
@@ -122,14 +131,79 @@ backspace.addEventListener('click', () => {
     }
     equal_number = display.innerHTML;
     canChangeOperand = false;
-})
+}
 
-// btns.forEach(btn => btn.addEventListener('click', recording));
+
+digits.forEach(digit => digit.addEventListener('click', e => addDigit(e.target.innerHTML)));
+
+opers.forEach(oper => oper.addEventListener('click', e => addOper(e.target.innerHTML)));
+
+equal.addEventListener('click', equalFunc);
+
+clear.addEventListener('click', clearFunc);
+
+opposite.addEventListener('click', oppositeFunc);
+
+percent.addEventListener('click', percentFunc);
+
+decimal.addEventListener('click', decimalFunc);
+
+backspace.addEventListener('click', backspaceFunc);
 
 btns.forEach(btn => btn.addEventListener('mousedown', () => {
-    btn.style.setProperty('box-shadow', '0px 0px 5px 2px white');
+    btn.classList.add("highlight");
+    audio.currentTime = 0;
+    audio.play();
 }))
 
 btns.forEach(btn => btn.addEventListener('mouseup', () => {
-    btn.style.setProperty('box-shadow', 'none');
+    btn.classList.remove("highlight");
 }))
+
+addEventListener("keydown", e => {
+    key_value = (shortcuts[e.key] ? shortcuts[e.key] : e.key);
+
+    if (key_value >= 0 && key_value<=9) {
+        if (key_value == "5" && e.ctrlKey) {
+            percentFunc();
+            key_value = "%";
+        } else {
+            addDigit(key_value);
+        }
+    }
+
+    if (key_value == "+" || key_value == "-" || key_value == "x" || key_value == "÷") {
+        if (key_value == "-" && e.shiftKey) {
+            oppositeFunc();
+            key_value = "+/-";
+        } else {
+            addOper(key_value);
+        }
+    }
+
+    if (key_value == "=") equalFunc();
+    if (key_value == "AC") clearFunc();
+    if (key_value == ".") decimalFunc();
+    if (key_value == "Del") backspaceFunc();
+
+    btns.forEach(btn => {
+        if (btn.innerHTML == key_value) btn.classList.add('highlight');
+    })
+
+    audio.currentTime = 0;
+    audio.play();
+})
+
+addEventListener("keyup", e => {
+    key_value = (shortcuts[e.key] ? shortcuts[e.key] : e.key);
+
+    if (e.key == "5" && e.ctrlKey) key_value = "%";
+    
+    if (e.key == "-" && e.shiftKey) key_value = "+/-";
+
+    btns.forEach(btn => {
+        if (btn.innerHTML == key_value) btn.classList.remove('highlight');
+    })
+
+    key_value = null;
+})
