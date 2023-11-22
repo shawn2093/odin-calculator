@@ -24,11 +24,6 @@ const shortcuts = {
     "/": "÷",
 }
 
-// things to improve:
-// add more comments
-// fixed length on display
-
-
 const operator = (currentOperation, secondNumber) => {
     let operand = currentOperation.slice(-1);
     let number1 = parseFloat(parseFloat(currentOperation.slice(0, -1)).toFixed(10));
@@ -161,7 +156,11 @@ btns.forEach(btn => btn.addEventListener('mouseup', () => {
 }))
 
 addEventListener("keydown", e => {
-    key_value = (shortcuts[e.key] ? shortcuts[e.key] : e.key);
+    if (e.key != " ") {
+        key_value = (shortcuts[e.key] ? shortcuts[e.key] : e.key);
+    } else {
+        key_value = "";
+    }
 
     if (key_value >= 0 && key_value<=9) {
         if (key_value == "5" && e.ctrlKey) {
@@ -170,6 +169,8 @@ addEventListener("keydown", e => {
         } else {
             addDigit(key_value);
         }
+        audio.currentTime = 0;
+        audio.play();
     }
 
     if (key_value == "+" || key_value == "-" || key_value == "x" || key_value == "÷") {
@@ -179,6 +180,8 @@ addEventListener("keydown", e => {
         } else {
             addOper(key_value);
         }
+        audio.currentTime = 0;
+        audio.play();
     }
 
     if (key_value == "=") equalFunc();
@@ -186,12 +189,15 @@ addEventListener("keydown", e => {
     if (key_value == ".") decimalFunc();
     if (key_value == "Del") backspaceFunc();
 
+    if (key_value == "=" || key_value == "AC" || key_value == "." || key_value == "Del") {
+        audio.currentTime = 0;
+        audio.play();
+    }
+
     btns.forEach(btn => {
         if (btn.innerHTML == key_value) btn.classList.add('highlight');
     })
 
-    audio.currentTime = 0;
-    audio.play();
 })
 
 addEventListener("keyup", e => {
